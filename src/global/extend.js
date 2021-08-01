@@ -1679,14 +1679,18 @@ function luckysheetdeletetable(type, st, ed, sheetIndex) {
         //删除选中行
         d.splice(st, slen);
 
-        //删除多少行，增加多少行空白行                
-        for (let r = 0; r < slen; r++) {
-            let row = [];
-            for (let c = 0; c < d[0].length; c++) {
-                row.push(null);
+        if(Store.fillBlankWhenDelete){
+            //删除多少行，增加多少行空白行
+            for (let r = 0; r < slen; r++) {
+                let row = [];
+                for (let c = 0; c < d[0].length; c++) {
+                    row.push(null);
+                }
+                d.push(row);
             }
-            d.push(row);
         }
+
+
     }
     else {
         type1 = "c";
@@ -1786,9 +1790,13 @@ function luckysheetdeletetable(type, st, ed, sheetIndex) {
         
         //空白列模板
         let addcol = [];
-        for (let r = 0; r < slen; r++) {
-            addcol.push(null);
+
+        if(Store.fillBlankWhenDelete === true){
+            for (let r = 0; r < slen; r++) {
+                addcol.push(null);
+            }
         }
+
 
         for (let r = 0; r < d.length; r++) {
             let row = [].concat(d[r]);

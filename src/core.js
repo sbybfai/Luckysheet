@@ -80,6 +80,7 @@ luckysheet.create = function (setting) {
     Store.limitSheetNameLength =  extendsetting.limitSheetNameLength;
     Store.defaultSheetNameMaxLength = extendsetting.defaultSheetNameMaxLength;
     Store.fontList = extendsetting.fontList;
+    Store.fillBlankWhenDelete = extendsetting.fillBlankWhenDelete;
     server.gridKey = extendsetting.gridKey;
     server.loadUrl = extendsetting.loadUrl;
     server.updateUrl = extendsetting.updateUrl;
