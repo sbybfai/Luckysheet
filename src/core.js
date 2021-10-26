@@ -117,6 +117,7 @@ luckysheet.create = function (setting) {
     luckysheetConfigsetting.showConfigWindowResize = extendsetting.showConfigWindowResize;
     luckysheetConfigsetting.enableAddRow = extendsetting.enableAddRow;
     luckysheetConfigsetting.enableAddBackTop = extendsetting.enableAddBackTop;
+    luckysheetConfigsetting.addRowCount = extendsetting.addRowCount;
     luckysheetConfigsetting.enablePage = extendsetting.enablePage;
     luckysheetConfigsetting.pageInfo = extendsetting.pageInfo;
 
