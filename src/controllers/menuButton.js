@@ -16,7 +16,7 @@ import {luckysheetupdateCell} from './updateCell';
 import insertFormula from './insertFormula';
 import sheetmanage from './sheetmanage';
 import luckysheetPostil from './postil';
-import { isRealNum, isRealNull, isEditMode, hasPartMC } from '../global/validate';
+import { isRealNum, isRealNull, isEditMode, hasPartMC, checkIsAllowEdit } from '../global/validate';
 import tooltip from '../global/tooltip';
 import editor from '../global/editor';
 import { genarate, update, is_date } from '../global/format';
@@ -37,7 +37,7 @@ import { replaceHtml, getObjType, rgbTohex, mouseclickposition, luckysheetfontfo
 import {openProtectionModal,checkProtectionFormatCells,checkProtectionNotEnable} from './protection';
 import Store from '../store';
 import locale from '../locale/locale';
-import {checkTheStatusOfTheSelectedCells} from '../global/api';
+import { checkTheStatusOfTheSelectedCells, frozenFirstRow, frozenFirstColumn } from '../global/api';
 
 const menuButton = {
     "menu": '<div class="luckysheet-cols-menu luckysheet-rightgclick-menu luckysheet-menuButton ${subclass} luckysheet-mousedown-cancel" id="luckysheet-icon-${id}-menuButton">${item}</div>',
@@ -119,6 +119,11 @@ const menuButton = {
 
         //格式刷
         $("#luckysheet-icon-paintformat").click(function(e){
+            // *如果禁止前台编辑，则中止下一步操作
+            if (!checkIsAllowEdit()) {
+                tooltip.info("", locale().pivotTable.errorNotAllowEdit);
+                return
+            }
             e.stopPropagation();
             let _locale = locale();
             let locale_paint = _locale.paint;
@@ -142,15 +147,38 @@ const menuButton = {
                 return;
             }
 
+            // *增加了对选区范围是否为部分合并单元格的校验，如果为部分合并单元格，就阻止格式刷的下一步
+            // TODO 这里也可以改为：判断到是合并单元格的一部分后，格式刷执行黏贴格式后删除范围单元格的 mc 值
+
+            let has_PartMC = false;
+
+            let r1 = Store.luckysheet_select_save[0].row[0], 
+                r2 = Store.luckysheet_select_save[0].row[1];
+
+            let c1 = Store.luckysheet_select_save[0].column[0], 
+                c2 = Store.luckysheet_select_save[0].column[1];
+
+            has_PartMC = hasPartMC(Store.config, r1, r2, c1, c2);
+
+            if(has_PartMC){
+                // *提示后中止下一步
+                tooltip.info('无法对部分合并单元格执行此操作', '');
+                return;
+            }
+
+
             tooltip.popover("<i class='fa fa-paint-brush'></i> "+locale_paint.start+"", "topCenter", true, null, locale_paint.end,function(){
                 _this.cancelPaintModel();
             });
+            
             $("#luckysheet-sheettable_0").addClass("luckysheetPaintCursor");
 
             Store.luckysheet_selection_range = [{ "row": Store.luckysheet_select_save[0].row, "column": Store.luckysheet_select_save[0].column }];
+
             selectionCopyShow();
 
             let RowlChange = false, HasMC = false;
+
             for(let r = Store.luckysheet_select_save[0].row[0]; r <= Store.luckysheet_select_save[0].row[1]; r++){
                 if (Store.config["rowhidden"] != null && Store.config["rowhidden"][r] != null) {
                     continue;
@@ -174,6 +202,11 @@ const menuButton = {
             _this.luckysheetPaintSingle = true;
         });
         $("#luckysheet-icon-paintformat").dblclick(function(){
+            // *如果禁止前台编辑，则中止下一步操作
+            if (!checkIsAllowEdit()) {
+                tooltip.info("", locale().pivotTable.errorNotAllowEdit);
+                return
+            }
             let _locale = locale();
             let locale_paint = _locale.paint;
             if(Store.luckysheet_select_save == null || Store.luckysheet_select_save.length == 0){
@@ -779,6 +812,11 @@ const menuButton = {
 
                 //交替颜色
                 $menuButton.find(".luckysheet-icon-alternateformat").click(function(){
+                    // *如果禁止前台编辑，则中止下一步操作
+                    if (!checkIsAllowEdit()) {
+                        tooltip.info("", locale().pivotTable.errorNotAllowEdit);
+                        return
+                    }
                     $menuButton.hide();
                     luckysheetContainerFocus();
 
@@ -927,7 +965,11 @@ const menuButton = {
 
         //边框设置
         $("#luckysheet-icon-border-all").click(function(){
-
+            // *如果禁止前台编辑，则中止下一步操作
+            if (!checkIsAllowEdit()) {
+                tooltip.info("", locale().pivotTable.errorNotAllowEdit);
+                return
+            }
             if(!checkProtectionFormatCells(Store.currentSheetIndex)){
                 return;
             }
@@ -1085,6 +1127,11 @@ const menuButton = {
                 
                 // border choose menu
                 $menuButton.find(".luckysheet-cols-menuitem").click(function(){
+                    // *如果禁止前台编辑，则中止下一步操作
+                    if (!checkIsAllowEdit()) {
+                        tooltip.info("", locale().pivotTable.errorNotAllowEdit);
+                        return
+                    }
                     $menuButton.hide();
                     luckysheetContainerFocus();
 
@@ -1226,7 +1273,6 @@ const menuButton = {
 
         //合并单元格
         $("#luckysheet-icon-merge-button").click(function(){
-
             if(!checkProtectionNotEnable(Store.currentSheetIndex)){
                 return;
             }
@@ -1292,7 +1338,7 @@ const menuButton = {
                 let menu = replaceHtml(_this.menu, { "id": "merge-menu", "item": itemset, "subclass": "", "sub": "" });
 
                 $("body").append(menu);
-                $menuButton = $("#"+menuButtonId).width(110);
+                $menuButton = $("#"+menuButtonId);
                 _this.focus($menuButton);
 
                 $menuButton.find(".luckysheet-cols-menuitem").click(function(){
@@ -1619,77 +1665,98 @@ const menuButton = {
 
                     let $t = $(this), itemvalue = $t.attr("itemvalue");
                     _this.focus($menuButton, itemvalue);
+                    if (itemvalue === 'freezenCancel') {
+                        $menuButton.find('.fa.fa-check').remove();
+                    }
 
                     // store frozen
                     luckysheetFreezen.saveFrozen(itemvalue);
 
                     if(itemvalue == "freezenRow"){ //首行冻结
-                        let scrollTop = $("#luckysheet-cell-main").scrollTop();
-                        let row_st = luckysheet_searcharray(Store.visibledatarow, scrollTop);
-                        if(row_st == -1){
-                            row_st = 0;
-                        }
-                        let top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
-                        let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
-                        luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
+                        frozenFirstRow();
+                        // let scrollTop = $("#luckysheet-cell-main").scrollTop();
+                        // let row_st = luckysheet_searcharray(Store.visibledatarow, scrollTop);
+                        // if(row_st == -1){
+                        //     row_st = 0;
+                        // }
+                        // let top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
+                        // let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                        // luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
 
-                        if (luckysheetFreezen.freezenverticaldata != null) {
-                            luckysheetFreezen.cancelFreezenVertical();
-                            luckysheetFreezen.createAssistCanvas();
-                            luckysheetrefreshgrid();
-                        }
+                        // if (luckysheetFreezen.freezenverticaldata != null) {
+                        //     luckysheetFreezen.cancelFreezenVertical();
+                        //     luckysheetFreezen.createAssistCanvas();
+                        //     luckysheetrefreshgrid();
+                        // }
 
-                        luckysheetFreezen.createFreezenHorizontal(freezenhorizontaldata, top);
-                        luckysheetFreezen.createAssistCanvas();
-                        luckysheetrefreshgrid();
+                        // luckysheetFreezen.createFreezenHorizontal(freezenhorizontaldata, top);
+                        // luckysheetFreezen.createAssistCanvas();
+                        // luckysheetrefreshgrid();
                     }
                     else if(itemvalue == "freezenColumn"){ //首列冻结
-                        let scrollLeft = $("#luckysheet-cell-main").scrollLeft();
-                        let col_st = luckysheet_searcharray(Store.visibledatacolumn, scrollLeft);
-                        if(col_st == -1){
-                            col_st = 0;
-                        }
-                        let left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
-                        let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
-                        luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
+                        frozenFirstColumn();
+                        // let scrollLeft = $("#luckysheet-cell-main").scrollLeft();
+                        // let col_st = luckysheet_searcharray(Store.visibledatacolumn, scrollLeft);
+                        // if(col_st == -1){
+                        //     col_st = 0;
+                        // }
+                        // let left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
+                        // let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        // luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
 
-                        if (luckysheetFreezen.freezenhorizontaldata != null) {
-                            luckysheetFreezen.cancelFreezenHorizontal();
-                            luckysheetFreezen.createAssistCanvas();
-                            luckysheetrefreshgrid();
-                        }
+                        // if (luckysheetFreezen.freezenhorizontaldata != null) {
+                        //     luckysheetFreezen.cancelFreezenHorizontal();
+                        //     luckysheetFreezen.createAssistCanvas();
+                        //     luckysheetrefreshgrid();
+                        // }
 
-                        luckysheetFreezen.createFreezenVertical(freezenverticaldata, left);
-                        luckysheetFreezen.createAssistCanvas();
-                        luckysheetrefreshgrid();
+                        // luckysheetFreezen.createFreezenVertical(freezenverticaldata, left);
+                        // luckysheetFreezen.createAssistCanvas();
+                        // luckysheetrefreshgrid();
                     }
                     else if(itemvalue == "freezenRC"){ //首行列冻结
-                        let scrollTop = $("#luckysheet-cell-main").scrollTop();
-                        let row_st = luckysheet_searcharray(Store.visibledatarow, scrollTop);
-                        if(row_st == -1){
-                            row_st = 0;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn) {
+                            let row_st = 0;
+                            let top = Store.visibledatarow[row_st] - 2 + Store.columnHeaderHeight;
+                            let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, 0, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                            luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
+
+                            luckysheetFreezen.createFreezenHorizontal(freezenhorizontaldata, top);
+
+                            let col_st = 0;
+                            let left = Store.visibledatacolumn[col_st] - 2 + Store.rowHeaderWidth;
+                            let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, 0, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                            luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
+
+                            luckysheetFreezen.createFreezenVertical(freezenverticaldata, left);
+                        } else {
+                            let scrollTop = $("#luckysheet-cell-main").scrollTop();
+                            let row_st = luckysheet_searcharray(Store.visibledatarow, scrollTop);
+                            if(row_st == -1){
+                                row_st = 0;
+                            }
+                            let top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
+                            let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                            luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
+
+                            luckysheetFreezen.createFreezenHorizontal(freezenhorizontaldata, top);
+
+                            let scrollLeft = $("#luckysheet-cell-main").scrollLeft();
+                            let col_st = luckysheet_searcharray(Store.visibledatacolumn, scrollLeft);
+                            if(col_st == -1){
+                                col_st = 0;
+                            }
+                            let left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
+                            let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                            luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
+
+                            luckysheetFreezen.createFreezenVertical(freezenverticaldata, left);
                         }
-                        let top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
-                        let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
-                        luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
-
-                        luckysheetFreezen.createFreezenHorizontal(freezenhorizontaldata, top);
-
-                        let scrollLeft = $("#luckysheet-cell-main").scrollLeft();
-                        let col_st = luckysheet_searcharray(Store.visibledatacolumn, scrollLeft);
-                        if(col_st == -1){
-                            col_st = 0;
-                        }
-                        let left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
-                        let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
-                        luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
-
-                        luckysheetFreezen.createFreezenVertical(freezenverticaldata, left);
-
                         luckysheetFreezen.createAssistCanvas();
                         luckysheetrefreshgrid();
                     }
                     else if(itemvalue == "freezenRowRange"){ //选区行冻结
+
                         if(Store.luckysheet_select_save == null || Store.luckysheet_select_save.length == 0){
                             if(isEditMode()){
                                 alert(locale_freezen.noSeletionError);
@@ -1700,7 +1767,11 @@ const menuButton = {
 
                             return;
                         }
-                        
+                        // 固定超出屏幕范围
+                        let rangeTop = Store.luckysheet_select_save[Store.luckysheet_select_save.length - 1].top;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn && rangeTop > $("#luckysheet-cell-main").height()) {
+                            return  tooltip.info(locale_freezen.rangeRCOverErrorTitle, locale_freezen.rangeRCOverError);
+                        }
                         let scrollTop = $("#luckysheet-cell-main").scrollTop();
                         let row_st = luckysheet_searcharray(Store.visibledatarow, scrollTop);
 
@@ -1714,9 +1785,14 @@ const menuButton = {
                         if(row_st == -1){
                             row_st = 0;
                         }
-
-                        let top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
-                        let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                        let top,freezenhorizontaldata;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn) {
+                            top = Store.visibledatarow[row_st] - 2 + Store.columnHeaderHeight;
+                            freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, 0, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                        } else {
+                            top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
+                            freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                        }
                         luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
 
                         if (luckysheetFreezen.freezenverticaldata != null) {
@@ -1740,7 +1816,11 @@ const menuButton = {
 
                             return;
                         }
-                        
+                        // 固定超出屏幕范围
+                        let rangeLeft = Store.luckysheet_select_save[Store.luckysheet_select_save.length - 1].left;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn && rangeLeft > $("#luckysheet-cell-main").width()) {
+                            return  tooltip.info(locale_freezen.rangeRCOverErrorTitle, locale_freezen.rangeRCOverError);
+                        }
                         let scrollLeft = $("#luckysheet-cell-main").scrollLeft();
                         let col_st = luckysheet_searcharray(Store.visibledatacolumn, scrollLeft);
 
@@ -1754,9 +1834,14 @@ const menuButton = {
                         if(col_st == -1){
                             col_st = 0;
                         }
-
-                        let left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
-                        let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        let left,freezenverticaldata;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn) {
+                            left = Store.visibledatacolumn[col_st] - 2 + Store.rowHeaderWidth;
+                            freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, 0, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        } else {
+                            left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
+                            freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        }
                         luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
 
                         if (luckysheetFreezen.freezenhorizontaldata != null) {
@@ -1780,6 +1865,13 @@ const menuButton = {
 
                             return;
                         }
+
+                        // 固定超出屏幕范围
+                        let rangeTop = Store.luckysheet_select_save[Store.luckysheet_select_save.length - 1].top;
+                        let rangeLeft = Store.luckysheet_select_save[Store.luckysheet_select_save.length - 1].left;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn && (rangeTop > $("#luckysheet-cell-main").height() || rangeLeft > $("#luckysheet-cell-main").width())) {
+                            return  tooltip.info(locale_freezen.rangeRCOverErrorTitle, locale_freezen.rangeRCOverError);
+                        }
                         
                         let scrollTop = $("#luckysheet-cell-main").scrollTop();
                         let row_st = luckysheet_searcharray(Store.visibledatarow, scrollTop);
@@ -1794,10 +1886,16 @@ const menuButton = {
                         if(row_st == -1){
                             row_st = 0;
                         }
-
-                        let top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
-                        let freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
-                        luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
+                        let top,freezenhorizontaldata;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn) {
+                            top = Store.visibledatarow[row_st] - 2 + Store.columnHeaderHeight;
+                            freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, 0, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                            luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
+                        } else {
+                            top = Store.visibledatarow[row_st] - 2 - scrollTop + Store.columnHeaderHeight;
+                            freezenhorizontaldata = [Store.visibledatarow[row_st], row_st + 1, scrollTop, luckysheetFreezen.cutVolumn(Store.visibledatarow, row_st + 1), top];
+                            luckysheetFreezen.saveFreezen(freezenhorizontaldata, top, null, null);
+                        }
 
                         luckysheetFreezen.createFreezenHorizontal(freezenhorizontaldata, top);
 
@@ -1813,9 +1911,14 @@ const menuButton = {
                         if(col_st == -1){
                             col_st = 0;
                         }
-                        
-                        let left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
-                        let freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        let left,freezenverticaldata;
+                        if (luckysheetFreezen.freezenRealFirstRowColumn) {
+                           left = Store.visibledatacolumn[col_st] - 2 + Store.rowHeaderWidth;
+                           freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, 0, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        } else {
+                           left = Store.visibledatacolumn[col_st] - 2 - scrollLeft + Store.rowHeaderWidth;
+                           freezenverticaldata = [Store.visibledatacolumn[col_st], col_st + 1, scrollLeft, luckysheetFreezen.cutVolumn(Store.visibledatacolumn, col_st + 1), left];
+                        }
                         luckysheetFreezen.saveFreezen(null, null, freezenverticaldata, left);
 
                         luckysheetFreezen.createFreezenVertical(freezenverticaldata, left);
@@ -3092,7 +3195,9 @@ const menuButton = {
             return;
         }
 
-        if(Store.allowEdit===false){
+        // *如果禁止前台编辑，则中止下一步操作
+        if (!checkIsAllowEdit()) {
+            tooltip.info("", locale().pivotTable.errorNotAllowEdit);
             return;
         }
 
@@ -3139,6 +3244,11 @@ const menuButton = {
         jfrefreshgrid(d, Store.luckysheet_select_save, allParam, false);
     },
     updateFormat_mc: function(d, foucsStatus){
+        // *如果禁止前台编辑，则中止下一步操作
+        if (!checkIsAllowEdit()) {
+            tooltip.info("", locale().pivotTable.errorNotAllowEdit);
+            return
+        }
         let cfg = $.extend(true, {}, Store.config);
         if(cfg["merge"] == null){
             cfg["merge"] = {};
