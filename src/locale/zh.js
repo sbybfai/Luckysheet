@@ -9096,7 +9096,7 @@ export default {
         moreFunction: '更多函数',
         conditionalFormat: '条件格式',
         postil: '批注',
-        pivotTable: '数据透视表', 
+        pivotTable: '数据透视表',
         chart: '图表',
         screenshot: '截图',
         splitColumn: '分列',
@@ -9436,8 +9436,8 @@ export default {
     fontFamily:{
         MicrosoftYaHei:"Microsoft YaHei",
     },
-    fontarray: ["Times New Roman","Arial","Tahoma","Verdana","微软雅黑","宋体","黑体","楷体","仿宋","新宋体","华文新魏","华文行楷","华文隶书"],
-    fontjson: {"times new roman":0,"arial":1,"tahoma":2,"verdana":3,"微软雅黑":4,"microsoft yahei":4,"宋体":5,"simsun":5,"黑体":6,"simhei":6,"楷体":7,"kaiti":7,"仿宋":8,"fangsong":8,"新宋体":9,"nsimsun":9,"华文新魏":10,"stxinwei":10,"华文行楷":11,"stxingkai":11,"华文隶书":12,"stliti":12,},
+    fontarray: ["Times New Roman","Arial","Tahoma","Verdana","微软雅黑","宋体","黑体","楷体","仿宋","新宋体","华文新魏","华文行楷","华文隶书","SJQY_ZHLW"],
+    fontjson: {"times new roman":0,"arial":1,"tahoma":2,"verdana":3,"微软雅黑":4,"microsoft yahei":4,"宋体":5,"simsun":5,"黑体":6,"simhei":6,"楷体":7,"kaiti":7,"仿宋":8,"fangsong":8,"新宋体":9,"nsimsun":9,"华文新魏":10,"stxinwei":10,"华文行楷":11,"stxingkai":11,"华文隶书":12,"stliti":12,"SJQY_ZHLQ":13},
     border:{
         borderTop:'上框线',
         borderBottom:'下框线',
@@ -9521,8 +9521,8 @@ export default {
 
     },
     filter:{
-        "filter":"筛选", 
-        "clearFilter":"清除筛选", 
+        "filter":"筛选",
+        clearFilter:"清除筛选",
 
         sortByAsc:"以A-Z升序排列",
         sortByDesc:"以Z-A降序排列",
@@ -9542,7 +9542,6 @@ export default {
         filterValueByTip:"按照值进行筛选",
         filterConform:"确 认",
         filterCancel:"取 消",
-        clearFilter:"清除筛选",
 
         conditionNone:"无",
         conditionCellIsNull:"单元格为空",
@@ -9693,7 +9692,7 @@ export default {
         "semicolon":"分号",
         "comma":"逗号",
         "space":"空格",
-        
+
     },
     findAndReplace:{
         find:"查找",
