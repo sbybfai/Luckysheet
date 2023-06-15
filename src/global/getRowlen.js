@@ -116,6 +116,10 @@ function computeRowlenByContent(d, r) {
             }
         }
 
+        if(Store.config["colhidden"] != null && Store.config["colhidden"][c] != null){
+            continue;
+        }
+
 
         if(cell != null && (cell.v != null || isInlineStringCell(cell)) ){
             let cellWidth = computeCellWidth(cell, c);
@@ -144,7 +148,7 @@ function computeRowlenByContent(d, r) {
 
 function computeCellWidth(cell, col_index) {
     let colLocationArr = colLocationByIndex(col_index);
-    if (cell.mc && cell.mc.c !== cell.mc.cs) {
+    if (cell.mc && 1 !== cell.mc.cs) {
         colLocationArr = colSpanLocationByIndex(col_index, cell.mc.cs);
     }
 

@@ -25,6 +25,14 @@ Funds donated via Patreon go directly to support mengshukeji's work on Luckyshee
 ## Sponsors List
 
 (Sort by time)
+- *涛 ¥ 200
+- popo ¥ 1
+- 孔垂善 ¥ 5
+- Shawn文 ¥ 99
+- 幸运的小路易 ¥ 1
+- 冯启俊 ¥ 88
+- mxb ¥ 10
+- 祭阳 ¥ 20
 - *勇 ¥ 30
 - 虚我 ¥ 200
 - 甜党 ¥ 50
@@ -81,3 +89,48 @@ Funds donated via Patreon go directly to support mengshukeji's work on Luckyshee
 - 花落有家 ¥ 50
 - 踏遍南水北山 ¥ 1
 - LC ¥ 5
+- **明 ¥ 8.80
+- *军 ¥ 20
+- 张彪 ¥ 50
+- 企业文档云@肖敏 ¥ 10
+- 匿名 ¥ 50
+- 逍遥行 ¥ 10
+- z.wasaki ¥ 50
+- Make Children ¥ 20
+- Foam ¥ 20
+- 奥特曼( o|o)ノ三 ¥ 50
+- **凯 ¥ 10
+- **兵 ¥ 20
+- **川 ¥ 1
+- 二万 ¥ 50
+- 蔚然成林 ¥ 10
+- 邹杰 ¥ 10
+- 张永强 ¥ 50
+- 鱼得水 ¥ 50
+- Ccther ¥ 1
+- Eric Cheng ¥ 10
+- 佚名 ¥ 1
+- 花叶 ¥ 50
+- GT ¥ 20
+- 菜菜心 ¥ 10
+- fisher ¥ 1
+- JC ¥ 5
+- 佚名 ¥ 20
+- 独孤一剑 ¥ 50
+- mxt ¥ 20
+- 一叶迷山 ¥ 100
+- Jeff ¥ 100
+- 八千多条狗🐶 ¥ 100
+- 晓峰 ¥ 10
+- 戒 ¥ 1
+- 浪里个浪 ¥ 1
+- 回调函数 ¥ 50
+- 赖瓜子 ¥ 5
+- Milo•J ¥ 20
+- 可道云 ¥ 200
+- *程 ¥ 10
+- 来一杯卡布酸奶 ¥ 5
+- 刘久胜 ¥ 100
+- 快意江湖 ¥ 50
+- *新 ¥ 9.9
+- **龙 ¥ 100

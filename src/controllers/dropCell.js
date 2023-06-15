@@ -181,24 +181,25 @@ const luckysheetDropCell = {
 
         let isChnNumber = true;
 
-        if(txt.length == 1){
-            if(txt == "日" || (txt in _this.chnNumChar)){
-                isChnNumber = true;
+        if (txt) {//如果不判断，出现undefined的时候这里会报错
+            if(txt.length == 1){
+                if(txt == "日" || (txt in _this.chnNumChar)){
+                    isChnNumber = true;
+                }
+                else{
+                    isChnNumber = false;
+                }
             }
             else{
-                isChnNumber = false;
-            }
-        }
-        else{
-            let str = txt.split("");
-            for(let i = 0; i < str.length; i++){
-                if(!((str[i] in _this.chnNumChar) || (str[i] in _this.chnNameValue))){
-                    isChnNumber = false;
-                    break;
+                let str = txt.split("");
+                for(let i = 0; i < str.length; i++){
+                    if(!((str[i] in _this.chnNumChar) || (str[i] in _this.chnNameValue))){
+                        isChnNumber = false;
+                        break;
+                    }
                 }
             }
         }
-
         return isChnNumber;
     },
     isExtendNumber: function(txt){
@@ -304,7 +305,7 @@ const luckysheetDropCell = {
             $("#luckysheet-dropCell-typeList").remove();
             const _locale = locale();
             const locale_dropCell = _locale.dropCell;
-            $("body").first().append(replaceHtml(_this.typeListHtml,{
+            $("body").append(replaceHtml(_this.typeListHtml,{
                 copyCell:locale_dropCell.copyCell,
                 sequence:locale_dropCell.sequence,
                 onlyFormat:locale_dropCell.onlyFormat,
@@ -485,7 +486,7 @@ const luckysheetDropCell = {
                             let f = "=" + formula.functionCopy(cell.f, "down", j - apply_str_r + 1);
                             let v = formula.execfunction(f, j, i);
 
-                            formula.execFunctionGroup(i, j, v[1], undefined, d);
+                            formula.execFunctionGroup(j, i, v[1], undefined, d);
 
                             cell.f = v[2];
                             cell.v = v[1];
@@ -581,7 +582,7 @@ const luckysheetDropCell = {
                             let f = "=" + formula.functionCopy(cell.f, "up", apply_end_r - j + 1);
                             let v = formula.execfunction(f, j, i);
 
-                            formula.execFunctionGroup(i, j, v[1], undefined, d);
+                            formula.execFunctionGroup(j, i, v[1], undefined, d);
 
                             cell.f = v[2];
                             cell.v = v[1];

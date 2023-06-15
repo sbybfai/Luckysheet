@@ -101,7 +101,7 @@ export function luckysheetupdateCell(row_index1, col_index1, d, cover, isnotfocu
     $("#luckysheet-input-box").removeAttr("style").css({ 
         "background-color": "rgb(255, 255, 255)", 
         "padding": "0px 2px", 
-        "font-size": "13px", 
+        "font-size": `${Store.defaultFontSize}pt`,
         "right": "auto", 
         "overflow-y": "auto",
         "box-sizing": "initial",
@@ -222,6 +222,7 @@ export function luckysheetupdateCell(row_index1, col_index1, d, cover, isnotfocu
         $("#luckysheet-rich-text-editor").html("");
     }
     else{
+        value = formula.ltGtSignDeal(value);
         $("#luckysheet-rich-text-editor").html(value);
         if (!isnotfocus) {
             luckysheetRangeLast($("#luckysheet-rich-text-editor")[0]);

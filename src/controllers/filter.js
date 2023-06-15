@@ -550,7 +550,13 @@ function initialFilterHandler(){
                 }
                 else{
                     let v, m;
-                    if(cell == null || isRealNull(cell.v)){
+                    if((cell == null || isRealNull(cell.v)) && cell?.mc){
+                        const { r, c } = cell.mc;
+                        const mainCell = Store.flowdata[r][c];
+                        v = mainCell.v;
+                        m = mainCell.m;
+                    }
+                    else if(cell == null || isRealNull(cell.v)){
                         v = null;
                         m = null;
                     }
@@ -860,7 +866,7 @@ function initialFilterHandler(){
             }
             //颜色筛选子菜单
             $("#luckysheet-filter-orderby-color-submenu").remove();
-            $("body").first().append('<div id="luckysheet-filter-orderby-color-submenu" class="luckysheet-cols-menu luckysheet-mousedown-cancel">'+content+'</div>');
+            $("body").append('<div id="luckysheet-filter-orderby-color-submenu" class="luckysheet-cols-menu luckysheet-mousedown-cancel">'+content+'</div>');
             let $t = $("#luckysheet-filter-orderby-color-submenu").end();
             let $con = $(this).parent();
             let winW = $(window).width(), winH = $(window).height();
@@ -1735,7 +1741,12 @@ function initialFilterHandler(){
                 let cell = Store.flowdata[r][cindex];
 
                 let value;
-                if(cell == null || isRealNull(cell.v)){
+                if((cell == null || isRealNull(cell.v)) && cell?.mc){
+                    const { r, c } = cell.mc
+                    const mainCell = Store.flowdata[r][c]
+                    value = mainCell.v + "#$$$#" + mainCell.m;
+                }
+                else if(cell == null || isRealNull(cell.v)){
                     value = "null#$$$#null";
                 }
                 else if(cell.ct != null && cell.ct.t == "d"){
