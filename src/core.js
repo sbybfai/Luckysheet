@@ -34,6 +34,7 @@ import Mandarin from "flatpickr/dist/l10n/zh.js";
 import { initListener } from "./controllers/listener";
 import { hideloading, showloading } from "./global/loading.js";
 import { luckysheetextendData } from "./global/extend.js";
+import { initChat } from './demoData/chat.js'
 
 let luckysheet = {};
 
@@ -44,7 +45,7 @@ let luckysheet = {};
 luckysheet = common_extend(api, luckysheet);
 
 //创建luckysheet表格
-luckysheet.create = function(setting) {
+luckysheet.create = function (setting) {
     method.destroy();
     // Store original parameters for api: toJson
     Store.toJsonOptions = {};
@@ -143,7 +144,7 @@ luckysheet.create = function(setting) {
     if (Store.lang === "zh") flatpickr.localize(Mandarin.zh);
 
     // Store the currently used plugins for monitoring asynchronous loading
-    Store.asyncLoad.push(...luckysheetConfigsetting.plugins);
+    Store.asyncLoad.push(...luckysheetConfigsetting.plugins.map(plugin => plugin.name));
 
     // Register plugins
     initPlugins(extendsetting.plugins, extendsetting);
@@ -167,7 +168,7 @@ luckysheet.create = function(setting) {
         // luckysheetsizeauto();
         initialWorkBook();
     } else {
-        $.post(loadurl, { gridKey: server.gridKey }, function(d) {
+        $.post(loadurl, { gridKey: server.gridKey }, function (d) {
             let data = new Function("return " + d)();
             Store.luckysheetfile = data;
 
@@ -181,6 +182,8 @@ luckysheet.create = function(setting) {
             }
         });
     }
+
+    initChat()
 };
 
 function initialWorkBook() {
@@ -233,7 +236,7 @@ luckysheet.getdatabyselection = getdatabyselection;
 luckysheet.sheetmanage = sheetmanage;
 
 // Data of the current table
-luckysheet.flowdata = function() {
+luckysheet.flowdata = function () {
     return Store.flowdata;
 };
 
