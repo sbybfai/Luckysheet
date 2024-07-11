@@ -24571,7 +24571,7 @@ const functionImplementation = {
             }
 
             if(!isRealNum(value)){
-                return formula.error.v;
+                return value;
             }
 
             value = parseFloat(value);
