@@ -4743,7 +4743,7 @@ export function matrixOperation(type, options = {}) {
                     }
                 }
 
-                a1 = a;
+                let a1 = a;
                 let l = getdatalen - a1.length;
                 for (let r1 = 0; r1 < l; r1++) {
                     a1.push(null);
@@ -5901,6 +5901,8 @@ export function redo(options = {}) {
     return ctr;
 }
 
+
+export { getBorderInfoCompute }
 
 /**
  * 返回所有工作表配置

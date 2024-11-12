@@ -10,3 +10,5 @@ src/expendPlugins/print/print.js
 .history
 .vs
 .vscode
+# 忽略换行符差异
+* text=auto

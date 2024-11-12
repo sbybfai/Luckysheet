@@ -6431,7 +6431,8 @@ export default {
         "华文新魏",
         "华文行楷",
         "华文隶书",
-        "SJQY_ZHLQ"
+        "SJQY_ZHLW",
+        "SJQY"
     ],
     fontjson: {
         "times new roman": 0,
@@ -6456,7 +6457,8 @@ export default {
         stxingkai: 11,
         华文隶书: 12,
         stliti: 12,
-        SJQY_ZHLQ: 13
+        "SJQY_ZHLW": 13,
+        SJQY: 14
     },
     border: {
         borderTop: "上框线",

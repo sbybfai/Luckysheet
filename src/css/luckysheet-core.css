@@ -7260,3 +7260,8 @@ fieldset[disabled] .btn-danger.focus {
     font-family: 'SJQY_ZHLW';
     src: url('../fonts/SJQY_ZHLW.ttf') format('truetype');
 }
+
+@font-face {
+    font-family: 'SJQY';
+    src: url('../fonts/SJQY.ttf') format('truetype');
+}
